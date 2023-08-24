@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Speech Recognition</title>
+</head>
+<body>
+    <h1>Speech Recognition</h1>
+    <button id="listenButton">Listen</button>
+    <button id="stopButton" disabled>Stop Listening</button>
+    <p id="transcriptionText"></p>
+    <button id="convertButton" disabled>Convert to Audio</button>
+    <audio id="audioPlayer" controls style="display: none;"></audio>
+
+    <script>
+        window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        const listenButton = document.getElementById('listenButton');
+        const stopButton = document.getElementById('stopButton');
+        const convertButton = document.getElementById('convertButton');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const transcriptionText = document.getElementById('transcriptionText');
+        let recognition;
+
+        listenButton.addEventListener('click', () => {
+            recognition = new window.SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = (e) => {
+                const result = e.results[e.results.length - 1][0].transcript;
+                transcriptionText.textContent = result;
+                convertButton.disabled = false;
+            };
+
+            recognition.onend = () => {
+                listenButton.disabled = false;
+                stopButton.disabled = true;
+            };
+
+            recognition.start();
+            listenButton.disabled = true;
+            stopButton.disabled = false;
+        });
+
+        stopButton.addEventListener('click', () => {
+            recognition.stop();
+        });
+
+        convertButton.addEventListener('click', () => {
+            const text = transcriptionText.textContent.trim();
+            if (text !== '') {
+                const speechSynthesis = window.speechSynthesis;
+                const utterance = new SpeechSynthesisUtterance(text);
+                speechSynthesis.speak(utterance);
+                audioPlayer.style.display = 'block';
+                audioPlayer.src = '';
+                utterance.addEventListener('end', () => {
+                    audioPlayer.style.display = 'none';
+                    audioPlayer.src = '';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
